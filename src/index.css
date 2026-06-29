@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Typography roles (Adobe Typekit, loaded in index.html):
+    --font-display : spent-vf      -> titles, names, kit numbers
+    --font-sans    : area-variable -> UI + briefing prose
+    --font-mono    : calling-code  -> numbers, tags, scores
+
+  Design tokens are wired as shadcn HSL channels (H S% L%) so Tailwind's
+  `hsl(var(--token))` colors resolve. Dark theme only — "floodlit pitch."
+  Source hex -> HSL:
+    background  #07241B -> 161 67% 8%
+    card        #0E3327 -> 160 57% 13%
+    foreground  #F4F1E6 -> 47 39% 93%
+    muted-fg    #C9CFC4 -> 93 10% 79%
+    primary     #34C76A -> 142 59% 49%
+    accent      #F2B705 -> 45 96% 48%
+    destructive #FF5436 -> 9 100% 61%
+    border      rgba(244,241,230,.13) over bg -> 156 25% 20%
+*/
+:root {
+  --font-display: "spent-vf", system-ui, sans-serif;
+  --font-sans: "area-variable", system-ui, sans-serif;
+  --font-mono: "calling-code", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  :root,
+  .dark {
+    --background: 161 67% 8%;
+    --foreground: 47 39% 93%;
+
+    --card: 160 57% 13%;
+    --card-foreground: 47 39% 93%;
+
+    --popover: 160 57% 13%;
+    --popover-foreground: 47 39% 93%;
+
+    --primary: 142 59% 49%;
+    --primary-foreground: 161 67% 8%;
+
+    --secondary: 160 57% 13%;
+    --secondary-foreground: 47 39% 93%;
+
+    --muted: 160 57% 13%;
+    --muted-foreground: 93 10% 79%;
+
+    --accent: 45 96% 48%;
+    --accent-foreground: 161 67% 8%;
+
+    --destructive: 9 100% 61%;
+    --destructive-foreground: 47 39% 93%;
+
+    --border: 156 25% 20%;
+    --input: 156 25% 20%;
+    --ring: 142 59% 49%;
+
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    /* Subtle floodlit glow from the top of the pitch. */
+    background-image: radial-gradient(
+      120% 60% at 50% -10%,
+      hsl(142 59% 49% / 0.12),
+      transparent 60%
+    );
+    background-attachment: fixed;
+  }
+
+  /* Tabular figures everywhere mono is used — scores/numbers stay aligned. */
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+  }
+}
