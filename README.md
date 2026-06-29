@@ -39,6 +39,7 @@ Both a tile tap and a spoken number flow through the same core action,
 - **Anthropic Messages API** (server-side) with the **web search** tool for
   live club/league/form
 - **Vitest** + **Testing Library** (jsdom) for unit and component tests
+- **Biome** for linting + formatting
 
 No router — simple view state. Seed rosters are hard-coded
 (`src/data/rosters.ts`) so the app works end-to-end with no external API.
@@ -91,21 +92,36 @@ cp .env.example .env # then put your real ANTHROPIC_API_KEY in .env
 npx netlify dev
 ```
 
-## Tests
+## Tests, lint & types
 
-[Vitest](https://vitest.dev) + Testing Library (jsdom).
+[Vitest](https://vitest.dev) + Testing Library (jsdom) for tests,
+[Biome](https://biomejs.dev) for lint + format, and `tsc` for types.
 
 ```bash
-npm test           # run once
-npm run test:watch # watch mode
-npm run typecheck  # tsc -b (also runs inside npm run build)
+npm test            # run tests once
+npm run test:watch  # watch mode
+npm run test:coverage  # coverage report (text + html in ./coverage)
+
+npm run lint        # biome check (lint + format + import order)
+npm run lint:fix    # biome check --write (autofix)
+npm run format      # biome format --write
+
+npm run typecheck   # tsc -b (also runs inside npm run build)
 ```
 
-Coverage today: the pure logic — `parseJerseyNumber`, `resolvePlayer`,
-profile load/save/validate, and the companion response normalization (hex
-validation + neutral fallbacks) — plus one component test (`ProfileForm`) that
-doubles as the Testing Library + jsdom reference. Test files live next to the
-code as `*.test.ts(x)`; shared setup is in `src/test/setup.ts`.
+What's covered today:
+
+- **Logic units** — `parseJerseyNumber`, `resolvePlayer`, profile
+  load/save/validate, and the companion response normalization (hex validation
+  + neutral fallbacks, via a mocked `fetch`).
+- **Component tests** (Testing Library + jsdom) — `ProfileForm` (validation +
+  save payload), `Roster` (tile render, tap-to-select, jump-to-number), and
+  `KitCard` (static identity renders immediately; club/league/briefing appear
+  after the fetch resolves).
+
+Test files live next to the code as `*.test.ts(x)`; shared setup is in
+`src/test/setup.ts`. Biome is configured in `biome.json` (Tailwind CSS is
+excluded since `@tailwind`/`@apply` aren't standard CSS).
 
 ## Deploy to Netlify
 
@@ -140,6 +156,7 @@ src/
   test/setup.ts                 Vitest setup (jest-dom matchers, cleanup)
   **/*.test.ts(x)               co-located unit + component tests
 netlify/functions/companion.ts  Anthropic + web search → structured JSON
+biome.json                      lint + format config
 .claude/                        SessionStart hook (installs deps in web sessions)
 ```
 

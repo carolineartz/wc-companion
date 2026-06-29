@@ -1,5 +1,5 @@
-import type { Profile } from "@/types";
 import { TEAMS } from "@/data/rosters";
+import type { Profile } from "@/types";
 
 const STORAGE_KEY = "companion.profile";
 

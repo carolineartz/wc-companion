@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
 import { Settings as SettingsIcon } from "lucide-react";
-
-import type { Player, Profile } from "@/types";
-import { TEAMS, getTeam } from "@/data/rosters";
-import { loadProfile, saveProfile, clearProfile } from "@/lib/profile";
+import { useEffect, useMemo, useState } from "react";
+import { FirstRun } from "@/components/FirstRun";
+import { KitCard } from "@/components/KitCard";
+import { Roster } from "@/components/Roster";
+import { Settings } from "@/components/Settings";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -12,14 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Sheet,
-  SheetContent,
-} from "@/components/ui/sheet";
-import { FirstRun } from "@/components/FirstRun";
-import { Roster } from "@/components/Roster";
-import { KitCard } from "@/components/KitCard";
-import { Settings } from "@/components/Settings";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { getTeam, TEAMS } from "@/data/rosters";
+import { clearProfile, loadProfile, saveProfile } from "@/lib/profile";
+import type { Player, Profile } from "@/types";
 
 export default function App() {
   const [profile, setProfile] = useState<Profile | null>(() => loadProfile());

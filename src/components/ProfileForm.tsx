@@ -1,12 +1,11 @@
-import { useState, type FormEvent } from "react";
 import { Check } from "lucide-react";
-
-import type { Profile } from "@/types";
-import { TEAMS } from "@/data/rosters";
-import { getTeamColors } from "@/data/teamColors";
+import { type FormEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { TEAMS } from "@/data/rosters";
+import { getTeamColors } from "@/data/teamColors";
 import { cn } from "@/lib/utils";
+import type { Profile } from "@/types";
 
 interface ProfileFormProps {
   initial?: Profile;
@@ -18,7 +17,11 @@ interface ProfileFormProps {
  * Customization layer. A second user sets their own name + favorite team(s)
  * with zero code — used both on first run and in Settings.
  */
-export function ProfileForm({ initial, submitLabel, onSave }: ProfileFormProps) {
+export function ProfileForm({
+  initial,
+  submitLabel,
+  onSave,
+}: ProfileFormProps) {
   const [name, setName] = useState(initial?.name ?? "");
   const [selected, setSelected] = useState<string[]>(
     initial?.favoriteTeamIds ?? [],
@@ -108,9 +111,7 @@ export function ProfileForm({ initial, submitLabel, onSave }: ProfileFormProps) 
         </p>
       </div>
 
-      {error && (
-        <p className="font-mono text-xs text-destructive">{error}</p>
-      )}
+      {error && <p className="font-mono text-xs text-destructive">{error}</p>}
 
       <Button type="submit" className="w-full">
         {submitLabel}

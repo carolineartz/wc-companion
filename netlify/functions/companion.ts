@@ -1,5 +1,5 @@
-import type { Handler } from "@netlify/functions";
 import Anthropic from "@anthropic-ai/sdk";
+import type { Handler } from "@netlify/functions";
 
 /**
  * World Cup companion — server-side. Holds the Anthropic key (never exposed to
@@ -131,10 +131,7 @@ export const handler: Handler = async (event) => {
  * Run the model with web search + adaptive thinking, handling pause_turn
  * continuations, and return the concatenated visible text.
  */
-async function runModel(
-  client: Anthropic,
-  prompt: string,
-): Promise<string> {
+async function runModel(client: Anthropic, prompt: string): Promise<string> {
   const messages: Anthropic.MessageParam[] = [
     { role: "user", content: prompt },
   ];
@@ -149,9 +146,7 @@ async function runModel(
   }
 
   return response.content
-    .filter(
-      (block): block is Anthropic.TextBlock => block.type === "text",
-    )
+    .filter((block): block is Anthropic.TextBlock => block.type === "text")
     .map((block) => block.text)
     .join("\n")
     .trim();
@@ -199,8 +194,10 @@ const HEX = /^#[0-9a-fA-F]{6}$/;
 
 function asHexPair(value: unknown): [string, string] {
   if (Array.isArray(value)) {
-    const a = typeof value[0] === "string" && HEX.test(value[0]) ? value[0] : null;
-    const b = typeof value[1] === "string" && HEX.test(value[1]) ? value[1] : null;
+    const a =
+      typeof value[0] === "string" && HEX.test(value[0]) ? value[0] : null;
+    const b =
+      typeof value[1] === "string" && HEX.test(value[1]) ? value[1] : null;
     if (a || b) {
       return [a ?? NEUTRAL_CLUB_COLORS[0], b ?? NEUTRAL_CLUB_COLORS[1]];
     }

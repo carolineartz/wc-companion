@@ -1,5 +1,5 @@
-import type { Player } from "@/types";
 import { getTeam } from "@/data/rosters";
+import type { Player } from "@/types";
 
 /**
  * CORE ACTION. Resolve a jersey number to a player on a team.

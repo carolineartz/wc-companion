@@ -1,5 +1,5 @@
-import type { CompanionResponse, Player, Profile } from "@/types";
 import { NEUTRAL_CLUB_COLORS } from "@/data/teamColors";
+import type { CompanionResponse, Player, Profile } from "@/types";
 
 const ENDPOINT = "/.netlify/functions/companion";
 
@@ -105,9 +105,7 @@ function normalize(
         : "No briefing available yet.",
     club: typeof data.club === "string" && data.club.trim() ? data.club : "—",
     league:
-      typeof data.league === "string" && data.league.trim()
-        ? data.league
-        : "—",
+      typeof data.league === "string" && data.league.trim() ? data.league : "—",
     clubColors,
     position:
       typeof data.position === "string" && data.position.trim()

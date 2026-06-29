@@ -1,11 +1,10 @@
-import { useState } from "react";
 import { Mic } from "lucide-react";
-
-import type { Player } from "@/types";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useVoice } from "@/hooks/useVoice";
 import { parseJerseyNumber } from "@/lib/numbers";
 import { resolvePlayer } from "@/lib/resolvePlayer";
+import type { Player } from "@/types";
 
 interface MicButtonProps {
   teamId: string;

@@ -1,12 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
 import { ChevronRight, Volume2 } from "lucide-react";
-
-import type { CompanionResponse, Player, Profile, Team } from "@/types";
-import { getTeamColors } from "@/data/teamColors";
-import { fetchBriefing, fetchTopicSummary } from "@/lib/companion";
-import { useVoice } from "@/hooks/useVoice";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Sheet,
   SheetContent,
@@ -14,6 +8,11 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { Skeleton } from "@/components/ui/skeleton";
+import { getTeamColors } from "@/data/teamColors";
+import { useVoice } from "@/hooks/useVoice";
+import { fetchBriefing, fetchTopicSummary } from "@/lib/companion";
+import type { CompanionResponse, Player, Profile, Team } from "@/types";
 
 interface KitCardProps {
   team: Team;

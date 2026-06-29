@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
-import { loadProfile, saveProfile, clearProfile } from "@/lib/profile";
+import { clearProfile, loadProfile, saveProfile } from "@/lib/profile";
 import type { Profile } from "@/types";
 
 const KEY = "companion.profile";

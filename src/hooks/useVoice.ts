@@ -29,7 +29,7 @@ declare global {
 
 const RecognitionCtor: SpeechRecognitionCtor | undefined =
   typeof window !== "undefined"
-    ? window.SpeechRecognition ?? window.webkitSpeechRecognition
+    ? (window.SpeechRecognition ?? window.webkitSpeechRecognition)
     : undefined;
 
 const synthAvailable =
@@ -64,35 +64,32 @@ export function useVoice(): UseVoice {
     setListening(false);
   }, []);
 
-  const listen = useCallback(
-    (onTranscript: (text: string) => void) => {
-      if (!RecognitionCtor) return;
-      // Cancel any in-flight session before starting a new one.
-      recognitionRef.current?.stop();
+  const listen = useCallback((onTranscript: (text: string) => void) => {
+    if (!RecognitionCtor) return;
+    // Cancel any in-flight session before starting a new one.
+    recognitionRef.current?.stop();
 
-      const recognition = new RecognitionCtor();
-      recognition.lang = "en-US";
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
-      recognition.continuous = false;
+    const recognition = new RecognitionCtor();
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.continuous = false;
 
-      recognition.onresult = (e) => {
-        const transcript = e.results[0]?.[0]?.transcript ?? "";
-        if (transcript) onTranscript(transcript);
-      };
-      recognition.onerror = () => setListening(false);
-      recognition.onend = () => setListening(false);
+    recognition.onresult = (e) => {
+      const transcript = e.results[0]?.[0]?.transcript ?? "";
+      if (transcript) onTranscript(transcript);
+    };
+    recognition.onerror = () => setListening(false);
+    recognition.onend = () => setListening(false);
 
-      recognitionRef.current = recognition;
-      setListening(true);
-      try {
-        recognition.start();
-      } catch {
-        setListening(false);
-      }
-    },
-    [],
-  );
+    recognitionRef.current = recognition;
+    setListening(true);
+    try {
+      recognition.start();
+    } catch {
+      setListening(false);
+    }
+  }, []);
 
   const speak = useCallback((text: string) => {
     if (!synthAvailable) return;

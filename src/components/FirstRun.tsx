@@ -1,4 +1,3 @@
-import type { Profile } from "@/types";
 import { ProfileForm } from "@/components/ProfileForm";
 import {
   Card,
@@ -7,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import type { Profile } from "@/types";
 
 interface FirstRunProps {
   onSave: (profile: Profile) => void;
@@ -26,7 +26,9 @@ export function FirstRun({ onSave }: FirstRunProps) {
       </div>
       <Card>
         <CardHeader>
-          <CardTitle className="font-display text-xl">Who's watching?</CardTitle>
+          <CardTitle className="font-display text-xl">
+            Who's watching?
+          </CardTitle>
           <CardDescription>
             We'll save this on your device so the app opens to your team. You
             can change it anytime in Settings.

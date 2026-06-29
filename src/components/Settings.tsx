@@ -1,4 +1,3 @@
-import type { Profile } from "@/types";
 import { ProfileForm } from "@/components/ProfileForm";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,6 +7,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import type { Profile } from "@/types";
 
 interface SettingsProps {
   open: boolean;

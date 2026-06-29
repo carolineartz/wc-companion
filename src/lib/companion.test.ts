@@ -1,11 +1,14 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-
-import { fetchBriefing } from "@/lib/companion";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NEUTRAL_CLUB_COLORS } from "@/data/teamColors";
+import { fetchBriefing } from "@/lib/companion";
 import type { Player, Profile } from "@/types";
 
 const team = { id: "usa", name: "United States" };
-const player: Player = { number: 10, name: "Christian Pulisic", position: "FWD" };
+const player: Player = {
+  number: 10,
+  name: "Christian Pulisic",
+  position: "FWD",
+};
 const profile: Profile = { name: "Dad", favoriteTeamIds: ["usa"] };
 
 function mockFetchOnce(body: unknown, ok = true) {

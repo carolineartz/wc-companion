@@ -1,9 +1,6 @@
-import { useMemo, useState, type FormEvent } from "react";
 import { ArrowDownUp } from "lucide-react";
-
-import type { Player, Team } from "@/types";
-import { getTeamColors } from "@/data/teamColors";
-import { resolvePlayer } from "@/lib/resolvePlayer";
+import { type FormEvent, useMemo, useState } from "react";
+import { MicButton } from "@/components/MicButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,7 +10,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MicButton } from "@/components/MicButton";
+import { getTeamColors } from "@/data/teamColors";
+import { resolvePlayer } from "@/lib/resolvePlayer";
+import type { Player, Team } from "@/types";
 
 interface RosterProps {
   team: Team;
