@@ -1,0 +1,16 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[functions]
+  # The companion function calls the Anthropic API with web search, which can
+  # take longer than the default 10s. Bump if you see timeouts (max 26s on
+  # the free tier; higher on paid plans).
+  node_bundler = "esbuild"
+
+# SPA fallback so the single-page app handles all routes.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
