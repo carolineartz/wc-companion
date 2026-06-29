@@ -1,0 +1,128 @@
+<!-- @dsCard group="B · Broadsheet" -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Match card · Broadsheet</title>
+    <link rel="stylesheet" href="https://use.typekit.net/nui1pgm.css" />
+    <style>
+      :root {
+        --paper: #f4f1e6;
+        --surface: #fbfaf3;
+        --ink: #16180f;
+        --soft: #6f7164;
+        --accent: #c8462f;
+        --rule: rgba(22, 24, 15, 0.14);
+        --display: "spent-vf", ui-sans-serif, system-ui, sans-serif;
+        --sans: "area-variable", ui-sans-serif, system-ui, sans-serif;
+        --mono: "calling-code", ui-monospace, "SF Mono", monospace;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 32px;
+        font-family: var(--sans);
+        color: var(--ink);
+        background: var(--paper);
+      }
+      .card {
+        width: 380px;
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        border-radius: 4px;
+        padding: 16px 20px 18px;
+        box-shadow: 0 18px 44px -28px rgba(22, 24, 15, 0.5);
+      }
+      .kicker {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--soft);
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--ink);
+      }
+      .live { color: var(--accent); font-weight: 600; }
+      .team {
+        display: grid;
+        grid-template-columns: 30px 1fr auto;
+        align-items: center;
+        gap: 13px;
+        padding: 13px 0;
+      }
+      .team + .team { border-top: 1px solid var(--rule); }
+      .flag { font-size: 24px; }
+      .name {
+        font-family: var(--display);
+        font-weight: 600;
+        font-size: 22px;
+        letter-spacing: -0.01em;
+      }
+      .meta {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        color: var(--soft);
+        text-transform: uppercase;
+        display: block;
+        margin-top: 2px;
+      }
+      .score {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 34px;
+        line-height: 1;
+        color: var(--soft);
+      }
+      .win .score { color: var(--accent); }
+      .foot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 12px;
+        padding-top: 11px;
+        border-top: 2px solid var(--ink);
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        color: var(--soft);
+      }
+      .cta { color: var(--accent); font-weight: 600; }
+    </style>
+  </head>
+  <body>
+    <article class="card">
+      <div class="kicker">
+        <span>Group A · Matchday 2</span>
+        <span class="live">● Live 73'</span>
+      </div>
+      <div class="team win">
+        <span class="flag">🇲🇽</span>
+        <span>
+          <span class="name">Mexico</span>
+          <span class="meta">MEX · Won 1, Drew 1</span>
+        </span>
+        <span class="score">2</span>
+      </div>
+      <div class="team">
+        <span class="flag">🇺🇸</span>
+        <span>
+          <span class="name">United States</span>
+          <span class="meta">USA · Won 1, Lost 1</span>
+        </span>
+        <span class="score">1</span>
+      </div>
+      <div class="foot">
+        <span>Estadio Azteca · Mexico City</span>
+        <span class="cta">Open match →</span>
+      </div>
+    </article>
+  </body>
+</html>

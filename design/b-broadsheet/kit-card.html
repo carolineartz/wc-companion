@@ -1,0 +1,132 @@
+<!-- @dsCard group="B · Broadsheet" -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kit card · Broadsheet</title>
+    <link rel="stylesheet" href="https://use.typekit.net/nui1pgm.css" />
+    <style>
+      :root {
+        --paper: #f4f1e6;
+        --surface: #fbfaf3;
+        --ink: #16180f;
+        --soft: #6f7164;
+        --accent: #c8462f;
+        --rule: rgba(22, 24, 15, 0.14);
+        --display: "spent-vf", ui-sans-serif, system-ui, sans-serif;
+        --sans: "area-variable", ui-sans-serif, system-ui, sans-serif;
+        --mono: "calling-code", ui-monospace, "SF Mono", monospace;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 32px;
+        font-family: var(--sans);
+        color: var(--ink);
+        background: var(--paper);
+      }
+      .card {
+        width: 360px;
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        border-radius: 4px;
+        padding: 18px 20px 20px;
+        box-shadow: 0 18px 44px -28px rgba(22, 24, 15, 0.5);
+      }
+      .kicker {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--soft);
+      }
+      .masthead {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: end;
+        gap: 8px;
+        padding: 6px 0 10px;
+        border-bottom: 2px solid var(--ink);
+      }
+      .name {
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 34px;
+        line-height: 0.98;
+        letter-spacing: -0.02em;
+      }
+      .nat {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--soft);
+        margin-top: 6px;
+      }
+      .num {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 70px;
+        line-height: 0.8;
+        color: var(--accent);
+      }
+      .stand {
+        font-family: var(--sans);
+        font-size: 14.5px;
+        line-height: 1.5;
+        padding: 12px 0 14px;
+        border-bottom: 1px solid var(--rule);
+      }
+      .rows { padding-top: 12px; }
+      .r {
+        display: grid;
+        grid-template-columns: 64px 1fr auto;
+        align-items: center;
+        gap: 10px;
+        padding: 7px 0;
+      }
+      .r + .r { border-top: 1px solid var(--rule); }
+      .lbl {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--soft);
+      }
+      .val { font-family: var(--display); font-weight: 600; font-size: 16px; }
+      .go { font-family: var(--mono); font-size: 14px; color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <article class="card">
+      <div class="kicker">Player · Forward</div>
+      <div class="masthead">
+        <div>
+          <div class="name">Christian<br />Pulisic</div>
+          <div class="nat">🇺🇸 United States</div>
+        </div>
+        <div class="num">10</div>
+      </div>
+      <p class="stand">
+        Captain and tip of the spear — carries the U.S. attack from the left,
+        fresh off a strong club season in Milan.
+      </p>
+      <div class="rows">
+        <div class="r">
+          <span class="lbl">Club</span>
+          <span class="val">AC Milan</span>
+          <span class="go">→</span>
+        </div>
+        <div class="r">
+          <span class="lbl">League</span>
+          <span class="val">Serie A · Italy</span>
+          <span class="go">→</span>
+        </div>
+      </div>
+    </article>
+  </body>
+</html>

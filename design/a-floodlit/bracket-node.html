@@ -1,0 +1,96 @@
+<!-- @dsCard group="A · Floodlit" -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bracket node · Floodlit</title>
+    <link rel="stylesheet" href="https://use.typekit.net/nui1pgm.css" />
+    <style>
+      :root {
+        --fg: #f4f1e6;
+        --muted: #c9cfc4;
+        --primary: #34c76a;
+        --accent: #f2b705;
+        --line: rgba(244, 241, 230, 0.13);
+        --display: "spent-vf", ui-sans-serif, system-ui, sans-serif;
+        --sans: "area-variable", ui-sans-serif, system-ui, sans-serif;
+        --mono: "calling-code", ui-monospace, "SF Mono", monospace;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 36px;
+        font-family: var(--sans);
+        color: var(--fg);
+        background:
+          radial-gradient(120% 70% at 50% -10%, rgba(52, 199, 106, 0.16), transparent 60%),
+          #061d16;
+      }
+      .node {
+        width: 300px;
+        background: linear-gradient(180deg, #103a2c, #0c2c21);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 10px 12px;
+        position: relative;
+      }
+      .tag {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin: 2px 2px 8px;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 26px 1fr auto;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 8px;
+        border-radius: 8px;
+      }
+      .row.win { background: rgba(52, 199, 106, 0.1); }
+      .row.win .nm { color: var(--fg); font-weight: 600; }
+      .row.win::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        width: 3px;
+        height: 30px;
+        border-radius: 3px;
+        background: var(--primary);
+        transform: translateX(0);
+      }
+      .flag { font-size: 20px; }
+      .nm { font-family: var(--display); font-size: 16px; color: var(--muted); }
+      .sc {
+        font-family: var(--mono);
+        font-size: 17px;
+        color: var(--muted);
+        letter-spacing: 0.04em;
+      }
+      .row.win .sc { color: var(--primary); }
+      .pens { font-size: 11px; color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <div class="node">
+      <div class="tag">Round of 16 · Jul 5</div>
+      <div class="row win">
+        <span class="flag">🇦🇷</span>
+        <span class="nm">Argentina</span>
+        <span class="sc">2</span>
+      </div>
+      <div class="row">
+        <span class="flag">🇧🇷</span>
+        <span class="nm">Brazil</span>
+        <span class="sc">1</span>
+      </div>
+    </div>
+  </body>
+</html>
