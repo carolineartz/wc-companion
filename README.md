@@ -1,5 +1,7 @@
 # WC Companion · 2026
 
+[![CI](https://github.com/carolineartz/wc-companion/actions/workflows/ci.yml/badge.svg)](https://github.com/carolineartz/wc-companion/actions/workflows/ci.yml)
+
 A dark, **floodlit-pitch** watching companion for the 2026 World Cup. Pick your
 team, browse the squad as a grid of kit-number tiles, and tap (or _say_) a
 number to open that player's **kit card** with a live, web-searched briefing —
