@@ -38,6 +38,7 @@ Both a tile tap and a spoken number flow through the same core action,
 - **Netlify** for hosting + serverless function
 - **Anthropic Messages API** (server-side) with the **web search** tool for
   live club/league/form
+- **Vitest** + **Testing Library** (jsdom) for unit and component tests
 
 No router — simple view state. Seed rosters are hard-coded
 (`src/data/rosters.ts`) so the app works end-to-end with no external API.
@@ -90,6 +91,22 @@ cp .env.example .env # then put your real ANTHROPIC_API_KEY in .env
 npx netlify dev
 ```
 
+## Tests
+
+[Vitest](https://vitest.dev) + Testing Library (jsdom).
+
+```bash
+npm test           # run once
+npm run test:watch # watch mode
+npm run typecheck  # tsc -b (also runs inside npm run build)
+```
+
+Coverage today: the pure logic — `parseJerseyNumber`, `resolvePlayer`,
+profile load/save/validate, and the companion response normalization (hex
+validation + neutral fallbacks) — plus one component test (`ProfileForm`) that
+doubles as the Testing Library + jsdom reference. Test files live next to the
+code as `*.test.ts(x)`; shared setup is in `src/test/setup.ts`.
+
 ## Deploy to Netlify
 
 1. Push this repo to GitHub and "Add new site → Import" in Netlify.
@@ -120,7 +137,10 @@ src/
   hooks/useVoice.ts             Web Speech API (feature-detected)
   components/                   FirstRun, Roster, KitCard, Settings, MicButton…
     ui/                         shadcn components
+  test/setup.ts                 Vitest setup (jest-dom matchers, cleanup)
+  **/*.test.ts(x)               co-located unit + component tests
 netlify/functions/companion.ts  Anthropic + web search → structured JSON
+.claude/                        SessionStart hook (installs deps in web sessions)
 ```
 
 ## Roadmap / deferred
