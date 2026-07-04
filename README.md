@@ -5,11 +5,17 @@
 A mobile-first watching companion for the 2026 World Cup, in the **"Pitch UI /
 Broadcast"** direction (design mocks in [`docs/screens/`](docs/screens)).
 
-**Status: working prototype for finding out what we actually want.** Every
-screen is clickable and wired together, but all data is mock — the app's
-clock is frozen at *Tuesday June 30, 2026, 15:50*, mid-Round-of-16, with
-Brazil–Morocco live at 2–1 in the 67th minute. Use it, notice what you reach
-for (and what you never touch), and rip out the rest.
+**Status: live-data prototype.** The app follows the real 2026 tournament
+through ESPN's public (unofficial, key-free) JSON feed: today's real
+fixtures and live scores (repolled every 60s), the real knockout bracket,
+real group standings, and per-match stats + lineups. Use it during actual
+matches, notice what you reach for (and what you never touch), and rip out
+the rest.
+
+Add **`?demo`** to the URL for the frozen design dataset (June 30, 2026,
+Brazil–Morocco live at 2–1 in the 67') — useful for design iteration and
+as a refuge if the feed is down. If the live feed can't be reached, the
+app says so and offers Retry / demo; it never renders a blank screen.
 
 ## What's in the prototype
 
@@ -35,9 +41,39 @@ for (and what you never touch), and rip out the rest.
 - **You** — your teams, notification toggles (persisted, but no real pushes
   yet), dark/light theme.
 
+What's live vs. demo-only today:
+
+| | Live (ESPN) | Demo |
+|---|---|---|
+| Today's fixtures, live scores/clock | ✅ | ✅ |
+| Bracket (incl. TBD future rounds) | ✅ | ✅ |
+| Group standings | ✅ | ✅ |
+| Match stats + lineups | ✅ | ✅ |
+| Recent form | ✅ | ✅ |
+| Golden Boot | ❌ (no free feed yet) | ✅ |
+| Who to Watch, win probability, path | ❌ | ✅ |
+| Player/club/league drill-downs | ❌ | ✅ |
+
+The UI simply hides sections it has no data for, so live matches show a
+leaner Overview than the demo one.
+
 Deliberately **not** built yet (parked until the core proves itself): the
-Electron menubar app, real push notifications, the match event timeline
-(mock 16), and any live data source.
+Electron menubar app, real push notifications, and the match event
+timeline (mock 16).
+
+## How live data works
+
+- `src/lib/live/espn.ts` — fetches ESPN's public scoreboard / summary /
+  standings endpoints. Direct from the browser first (ESPN sends open CORS
+  headers); if that fails it retries through `/api/espn/*`, which the Vite
+  dev server proxies locally and a Netlify redirect proxies in production.
+- `src/lib/live/normalize.ts` — defensively maps ESPN JSON into our domain
+  types (unit-tested against recorded shapes). A missing field degrades a
+  section, never crashes a screen.
+- `src/lib/source.ts` — the `DataSource` seam: `liveSource` vs `demoSource`.
+  Everything else consumes `useTournament()` and doesn't care which is
+  active. The last good live snapshot is cached in localStorage for instant
+  paint.
 
 ## Where things live (for fast iteration)
 

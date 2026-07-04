@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { TeamBadge } from "@/components/TeamBadge";
-import { GROUPS } from "@/data/matches";
 import { getClub } from "@/data/players";
 import { getTeam } from "@/data/teams";
-import { goldenBoot } from "@/lib/queries";
+import { useTournament } from "@/hooks/useTournament";
 import { cn } from "@/lib/utils";
-import type { Group } from "@/types";
+import type { BootEntry, Group } from "@/types";
 
 const TABS = ["Standings", "Golden Boot"] as const;
 type Tab = (typeof TABS)[number];
@@ -45,14 +44,24 @@ export function StatsScreen() {
 /* --------------------------------------------------------------- Standings */
 
 function Standings() {
+  const t = useTournament();
+  if (t.groups.length === 0) {
+    return (
+      <p className="pt-8 text-center text-sm text-muted-foreground">
+        {t.loading
+          ? "Loading standings…"
+          : "Group tables aren't available right now."}
+      </p>
+    );
+  }
   return (
     <div className="flex flex-col gap-4 pb-6 pt-4">
-      {GROUPS.map((g) => (
+      {t.groups.map((g) => (
         <GroupCard key={g.name} group={g} />
       ))}
       <p className="flex items-center gap-2 px-1 text-xs text-muted-foreground">
         <span className="h-3 w-3 rounded bg-accent/40" />
-        Through to the knockout rounds · 12 groups total
+        Through to the knockout rounds
       </p>
     </div>
   );
@@ -97,41 +106,70 @@ function GroupCard({ group }: { group: Group }) {
 /* -------------------------------------------------------------- Golden Boot */
 
 function GoldenBoot() {
-  const players = goldenBoot();
+  const t = useTournament();
+  if (!t.boot) {
+    return (
+      <p className="px-2 pt-8 text-center text-sm text-muted-foreground">
+        Top scorers aren&apos;t wired to the live feed yet — that list needs a
+        stats source we haven&apos;t added. (It works in{" "}
+        <a href="/?demo#/stats" className="underline">
+          demo mode
+        </a>
+        .)
+      </p>
+    );
+  }
   return (
     <div className="flex flex-col gap-3 pb-6 pt-4">
-      {players.map((p, i) => (
-        <a
-          key={p.id}
-          href={`#/player/${p.id}`}
-          className="flex items-center gap-3 rounded-2xl bg-card p-3"
-        >
-          <span
-            className={cn(
-              "flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-num text-xs font-bold",
-              i === 0
-                ? "bg-gold text-background"
-                : "bg-secondary text-muted-foreground",
-            )}
-          >
-            {i + 1}
-          </span>
-          <PlayerAvatar player={p} />
-          <TeamBadge code={p.teamCode} size="sm" />
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm font-bold">{p.name}</span>
-            <span className="block truncate text-xs text-muted-foreground">
-              {getClub(p.clubId)?.name}
-            </span>
-          </span>
-          <span className="text-right">
-            <span className="block font-num text-lg font-bold">{p.goals}</span>
-            <span className="block text-[10px] text-muted-foreground">
-              {p.assists} assists
-            </span>
-          </span>
-        </a>
+      {t.boot.map((entry, i) => (
+        <BootRow
+          key={`${entry.name}-${entry.teamCode}`}
+          entry={entry}
+          rank={i + 1}
+        />
       ))}
     </div>
+  );
+}
+
+function BootRow({ entry, rank }: { entry: BootEntry; rank: number }) {
+  const club = entry.club ? getClub(entry.club) : undefined;
+  const body = (
+    <>
+      <span
+        className={cn(
+          "flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-num text-xs font-bold",
+          rank === 1
+            ? "bg-gold text-background"
+            : "bg-secondary text-muted-foreground",
+        )}
+      >
+        {rank}
+      </span>
+      <PlayerAvatar name={entry.name} colors={club?.colors} />
+      <TeamBadge code={entry.teamCode} size="sm" />
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-bold">{entry.name}</span>
+        {club && (
+          <span className="block truncate text-xs text-muted-foreground">
+            {club.name}
+          </span>
+        )}
+      </span>
+      <span className="text-right">
+        <span className="block font-num text-lg font-bold">{entry.goals}</span>
+        <span className="block text-[10px] text-muted-foreground">
+          {entry.assists} assists
+        </span>
+      </span>
+    </>
+  );
+  const className = "flex items-center gap-3 rounded-2xl bg-card p-3";
+  return entry.playerId ? (
+    <a href={`#/player/${entry.playerId}`} className={className}>
+      {body}
+    </a>
+  ) : (
+    <div className={className}>{body}</div>
   );
 }

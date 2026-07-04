@@ -15,6 +15,8 @@ export interface Team {
   kit: { primary: string; secondary: string };
   /** Jersey-panel colors for the no-photo player profile (name / number). */
   jersey: { name: string; number: string };
+  /** Crest image URL when a live data source provides one. */
+  logo?: string;
 }
 
 export interface Club {
@@ -50,7 +52,7 @@ export interface Player {
 }
 
 export type MatchStatus = "upcoming" | "live" | "ft";
-export type Round = "R16" | "QF" | "SF" | "F";
+export type Round = "R32" | "R16" | "QF" | "SF" | "F";
 
 /** One line of a formation, top of the pitch = first row. */
 export type LineupRow = { num: number; name: string }[];
@@ -60,41 +62,53 @@ export interface Lineup {
   rows: LineupRow[]; // GK first
 }
 
-export interface MatchStats {
-  possession: [number, number];
-  shots: [number, number];
-  onTarget: [number, number];
-  xg: [number, number];
-  corners: [number, number];
-  fouls: [number, number];
+/** One comparative stat line ("58% · Possession · 42%"). */
+export interface StatRow {
+  label: string;
+  home: string; // display values — live feeds mix ints, floats and %s
+  away: string;
+  homeShare?: number; // 0–1 for the bar; omitted = no bar
 }
 
 export interface Match {
-  id: string; // "r16-bra-mar"
-  round: Round;
+  id: string; // live: ESPN event id; demo: "r16-bra-mar"
+  /** Knockout round for the bracket; undefined = group stage. */
+  round?: Round;
   /** Position within the round, 0-based top→bottom; drives the bracket. */
   slot: number;
-  stageLabel: string; // "Round of 16"
+  stageLabel: string; // "Round of 16", "Group A"
   home: string; // team code
   away: string;
-  kickoff: string; // ISO local-ish
+  kickoff: string; // ISO
   venue: string;
   city: string;
   status: MatchStatus;
-  minute?: number;
+  /** Display clock while live ("67'", "45'+2"). */
+  clock?: string;
   period?: string; // "2nd half"
   score?: { home: number; away: number };
-  /** Player ids surfaced as "Who to watch". */
+  shootout?: { home: number; away: number };
+  /** Player ids surfaced as "Who to watch" (demo only for now). */
   watch?: string[];
   winProb?: { home: number; draw: number; away: number };
   /** Home win-prob over time (0–100), KO→now, for the momentum sparkline. */
   momentum?: number[];
-  stats?: MatchStats;
+  stats?: StatRow[];
   lineups?: { home: Lineup; away: Lineup };
   /** Short "path to this point" lines per side. */
   path?: { home: string[]; away: string[] };
   h2h?: string; // "BRA 3W · 1D · 1L in last 5"
   form?: { home: string[]; away: string[] }; // ["W","W","D"] most recent first
+}
+
+/** A Golden Boot row; `playerId` links into the player registry when known. */
+export interface BootEntry {
+  playerId?: string;
+  name: string;
+  teamCode: string;
+  club?: string;
+  goals: number;
+  assists: number;
 }
 
 export interface GroupRow {

@@ -1,12 +1,12 @@
-import { MATCHES } from "@/data/matches";
 import { CLUBS, PLAYERS } from "@/data/players";
 import type { Club, Match, Player, Profile, Round } from "@/types";
 import { isToday } from "./time";
 
-// Small derivation helpers so screens stay dumb. All of this is O(tiny)
-// over seed data — no memoization needed.
+// Small derivation helpers so screens stay dumb. Match helpers take the
+// active dataset (live or demo) as an argument; player/club/league helpers
+// still read the seeded demo registry (no live equivalent yet).
 
-/** The Golden Boot table: goals desc, then assists desc. */
+/** The demo Golden Boot: goals desc, then assists desc. */
 export function goldenBoot(limit = 10): Player[] {
   return Object.values(PLAYERS)
     .filter((p) => p.goals > 0)
@@ -32,16 +32,20 @@ export function clubsInLeague(
     .sort((a, b) => b.players.length - a.players.length);
 }
 
-export function liveMatches(): Match[] {
-  return MATCHES.filter((m) => m.status === "live");
+export function liveMatches(matches: Match[]): Match[] {
+  return matches.filter((m) => m.status === "live");
 }
 
 /**
- * Today's fixtures for the home screen: live first, then upcoming by
- * kick-off, with the user's teams floated to the top of the upcoming list.
+ * Today's fixtures for the home screen: live first, then upcoming with the
+ * user's teams floated up, then by kick-off; finished matches last.
  */
-export function todaysMatches(favorites: string[] = []): Match[] {
-  const today = MATCHES.filter((m) => isToday(m.kickoff));
+export function todaysMatches(
+  matches: Match[],
+  favorites: string[],
+  now: Date,
+): Match[] {
+  const today = matches.filter((m) => isToday(m.kickoff, now));
   const involvesFavorite = (m: Match) =>
     favorites.includes(m.home) || favorites.includes(m.away) ? 0 : 1;
   const rank = { live: 0, upcoming: 1, ft: 2 } as const;
@@ -53,26 +57,41 @@ export function todaysMatches(favorites: string[] = []): Match[] {
   );
 }
 
+/** The next day (after `now`) that has fixtures, for quiet rest days. */
+export function nextMatchday(matches: Match[], now: Date): Match[] {
+  const upcoming = matches
+    .filter((m) => m.status === "upcoming" && !isToday(m.kickoff, now))
+    .sort((a, b) => a.kickoff.localeCompare(b.kickoff));
+  if (upcoming.length === 0) return [];
+  const firstDay = new Date(upcoming[0].kickoff);
+  return upcoming.filter((m) => isToday(m.kickoff, firstDay));
+}
+
 /** The favorite team (if any) involved in a match, for "one of your teams". */
 export function favoriteIn(match: Match, profile: Profile | null): string[] {
   if (!profile) return [];
   return [match.home, match.away].filter((c) => profile.teams.includes(c));
 }
 
-export function matchesInRound(round: Round): Match[] {
-  return MATCHES.filter((m) => m.round === round).sort(
-    (a, b) => a.slot - b.slot,
-  );
+export function matchesInRound(matches: Match[], round: Round): Match[] {
+  return matches
+    .filter((m) => m.round === round)
+    .sort((a, b) => a.slot - b.slot);
 }
 
 /**
- * Bracket feeders: QF slot n is fed by R16 slots 2n / 2n+1, and so on.
- * Returns the (possibly unplayed) pairing label for a future slot,
- * e.g. ["BRA/MAR", "ARG/JPN"], or the winner code once decided.
+ * Bracket feeders for rounds with no scheduled fixture yet: QF slot n is
+ * fed by R16 slots 2n / 2n+1, and so on. Returns pairing labels
+ * ("BRA/MAR") or the winner's code once a feeder is decided.
  */
-export function feederLabel(round: Round, slot: number): [string, string] {
+export function feederLabel(
+  matches: Match[],
+  round: Round,
+  slot: number,
+): [string, string] {
   const prev: Record<Round, Round | null> = {
-    R16: null,
+    R32: null,
+    R16: "R32",
     QF: "R16",
     SF: "QF",
     F: "SF",
@@ -80,12 +99,25 @@ export function feederLabel(round: Round, slot: number): [string, string] {
   const from = prev[round];
   if (!from) return ["TBD", "TBD"];
   const feeders = [slot * 2, slot * 2 + 1].map((s) => {
-    const m = matchesInRound(from).find((x) => x.slot === s);
+    const m = matchesInRound(matches, from).find((x) => x.slot === s);
     if (!m) return "TBD";
     if (m.status === "ft" && m.score) {
-      return m.score.home >= m.score.away ? m.home : m.away;
+      return winnerOf(m);
     }
     return `${m.home}/${m.away}`;
   });
   return [feeders[0], feeders[1]];
+}
+
+/** Winner's team code, shootout-aware. */
+export function winnerOf(match: Match): string {
+  const { score, shootout } = match;
+  if (!score) return "TBD";
+  if (score.home !== score.away) {
+    return score.home > score.away ? match.home : match.away;
+  }
+  if (shootout) {
+    return shootout.home > shootout.away ? match.home : match.away;
+  }
+  return "TBD";
 }

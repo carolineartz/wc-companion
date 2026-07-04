@@ -1,15 +1,30 @@
 import { TeamBadge } from "@/components/TeamBadge";
 import { getTeam } from "@/data/teams";
+import { useTournament } from "@/hooks/useTournament";
 import { initials, onColor } from "@/lib/color";
-import { favoriteIn, liveMatches, todaysMatches } from "@/lib/queries";
-import { formatKickoff, formatToday, greeting, untilKickoff } from "@/lib/time";
+import {
+  favoriteIn,
+  liveMatches,
+  nextMatchday,
+  todaysMatches,
+} from "@/lib/queries";
+import {
+  formatDay,
+  formatKickoff,
+  formatToday,
+  greeting,
+  untilKickoff,
+} from "@/lib/time";
 import type { Match, Profile } from "@/types";
 
 export function TodayScreen({ profile }: { profile: Profile }) {
-  const live = liveMatches();
-  const fixtures = todaysMatches(profile.teams).filter(
+  const t = useTournament();
+  const now = t.now();
+  const live = liveMatches(t.matches);
+  const today = todaysMatches(t.matches, profile.teams, now).filter(
     (m) => m.status !== "live",
   );
+  const upNext = today.length === 0 ? nextMatchday(t.matches, now) : [];
   const liveLabel =
     live.length === 1 ? "1 match live now" : `${live.length} matches live now`;
 
@@ -18,11 +33,11 @@ export function TodayScreen({ profile }: { profile: Profile }) {
       <header className="flex items-start justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-bold tracking-tight">
-            {greeting()}
+            {greeting(now)}
             {profile.name ? `, ${profile.name}` : ""}
           </h1>
           <p className="mt-1 text-xs text-muted-foreground">
-            {formatToday()}
+            {formatToday(now)}
             {live.length > 0 && <> · {liveLabel}</>}
           </p>
         </div>
@@ -34,6 +49,8 @@ export function TodayScreen({ profile }: { profile: Profile }) {
           {initials(profile.name || "You")}
         </a>
       </header>
+
+      <StatusBanner />
 
       <p className="section-label mt-6">Your teams</p>
       <div className="no-scrollbar -mx-4 mt-2 flex gap-2 overflow-x-auto px-4">
@@ -52,14 +69,87 @@ export function TodayScreen({ profile }: { profile: Profile }) {
         <LiveHero key={m.id} match={m} />
       ))}
 
-      <p className="section-label mt-7">
-        Today · {fixtures[0]?.stageLabel ?? "Fixtures"}
+      {t.matches.length === 0 && t.loading ? (
+        <LoadingList />
+      ) : (
+        <>
+          <p className="section-label mt-7">
+            {today.length > 0
+              ? `Today · ${today[0].stageLabel}`
+              : upNext.length > 0
+                ? `Next · ${formatDay(upNext[0].kickoff)}`
+                : "Fixtures"}
+          </p>
+          <div className="mt-3 flex flex-col gap-3 pb-6">
+            {(today.length > 0 ? today : upNext).map((m) => (
+              <FixtureCard key={m.id} match={m} profile={profile} now={now} />
+            ))}
+            {today.length === 0 && upNext.length === 0 && !t.loading && (
+              <p className="rounded-2xl bg-card p-4 text-sm text-muted-foreground">
+                No fixtures found.
+              </p>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/** Live-feed status: silent when healthy, loud when the feed is down. */
+function StatusBanner() {
+  const t = useTournament();
+  if (t.kind === "demo") {
+    return (
+      <p className="mt-4 rounded-xl border border-gold/40 bg-gold/10 px-3 py-2 text-xs text-gold">
+        Demo data (frozen at June 30) ·{" "}
+        <a href="/" className="underline">
+          switch to live
+        </a>
       </p>
-      <div className="mt-3 flex flex-col gap-3 pb-6">
-        {fixtures.map((m) => (
-          <FixtureCard key={m.id} match={m} profile={profile} />
-        ))}
+    );
+  }
+  if (t.error && t.matches.length === 0) {
+    return (
+      <div className="mt-4 rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs">
+        <p className="font-bold text-destructive">
+          Couldn&apos;t reach the live feed.
+        </p>
+        <p className="mt-1 text-muted-foreground">
+          <button type="button" onClick={t.refresh} className="underline">
+            Retry
+          </button>{" "}
+          ·{" "}
+          <a href="/?demo" className="underline">
+            browse demo data
+          </a>
+        </p>
       </div>
+    );
+  }
+  if (t.error) {
+    return (
+      <p className="mt-4 text-[11px] text-muted-foreground">
+        Live feed unreachable — showing the last good update
+        {t.lastUpdated
+          ? ` (${formatKickoff(new Date(t.lastUpdated).toISOString())})`
+          : ""}
+        .{" "}
+        <button type="button" onClick={t.refresh} className="underline">
+          Retry
+        </button>
+      </p>
+    );
+  }
+  return null;
+}
+
+function LoadingList() {
+  return (
+    <div className="mt-7 flex flex-col gap-3 pb-6">
+      {["a", "b", "c"].map((k) => (
+        <div key={k} className="h-24 animate-pulse rounded-2xl bg-card" />
+      ))}
     </div>
   );
 }
@@ -76,7 +166,7 @@ function LiveHero({ match }: { match: Match }) {
       <div className="flex items-center justify-between text-xs">
         <span className="flex items-center gap-2 font-bold text-destructive">
           <span className="h-2 w-2 animate-pulse rounded-full bg-destructive" />
-          LIVE · {match.minute}&apos;
+          LIVE · {match.clock}
         </span>
         <span className="text-muted-foreground">{match.stageLabel}</span>
       </div>
@@ -89,7 +179,8 @@ function LiveHero({ match }: { match: Match }) {
             {match.score?.away}
           </p>
           <p className="mt-1 text-[11px] text-muted-foreground">
-            {match.minute}&apos; · {match.period}
+            {match.clock}
+            {match.period ? ` · ${match.period}` : ""}
           </p>
         </div>
         <KitBlock code={match.away} color={away.kit.primary} />
@@ -113,7 +204,15 @@ function KitBlock({ code, color }: { code: string; color: string }) {
   );
 }
 
-function FixtureCard({ match, profile }: { match: Match; profile: Profile }) {
+function FixtureCard({
+  match,
+  profile,
+  now,
+}: {
+  match: Match;
+  profile: Profile;
+  now: Date;
+}) {
   const yours = favoriteIn(match, profile);
   const finished = match.status === "ft";
   return (
@@ -137,7 +236,7 @@ function FixtureCard({ match, profile }: { match: Match; profile: Profile }) {
                 {formatKickoff(match.kickoff)}
               </p>
               <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">
-                {untilKickoff(match.kickoff)}
+                {untilKickoff(match.kickoff, now)}
               </p>
             </>
           )}

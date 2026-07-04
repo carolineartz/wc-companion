@@ -1,12 +1,14 @@
+import { MATCHES, MOCK_NOW } from "@/data/matches";
 import {
   clubsInLeague,
   feederLabel,
   goldenBoot,
   playersByClub,
   todaysMatches,
+  winnerOf,
 } from "./queries";
 
-describe("goldenBoot", () => {
+describe("goldenBoot (demo)", () => {
   it("sorts by goals, then assists", () => {
     const boot = goldenBoot();
     expect(boot[0].id).toBe("mbappe");
@@ -22,7 +24,7 @@ describe("goldenBoot", () => {
   });
 });
 
-describe("club and league drill-downs", () => {
+describe("club and league drill-downs (demo)", () => {
   it("finds all four AC Milan players across nations", () => {
     const milan = playersByClub("ac-milan");
     expect(milan).toHaveLength(4);
@@ -42,7 +44,9 @@ describe("club and league drill-downs", () => {
 
 describe("todaysMatches", () => {
   it("puts live first, then the user's teams, then by kick-off", () => {
-    const ids = todaysMatches(["USA", "ARG"]).map((m) => m.id);
+    const ids = todaysMatches(MATCHES, ["USA", "ARG"], MOCK_NOW).map(
+      (m) => m.id,
+    );
     expect(ids).toEqual([
       "r16-bra-mar", // live
       "r16-ned-usa", // favorite, 18:00
@@ -52,13 +56,22 @@ describe("todaysMatches", () => {
   });
 });
 
-describe("feederLabel (bracket)", () => {
+describe("bracket helpers", () => {
   it("resolves a finished feeder to the winner", () => {
     // QF slot 1 is fed by R16 slots 2 (FRA/SEN) and 3 (ESP beat CRO).
-    expect(feederLabel("QF", 1)).toEqual(["FRA/SEN", "ESP"]);
+    expect(feederLabel(MATCHES, "QF", 1)).toEqual(["FRA/SEN", "ESP"]);
   });
 
   it("labels unplayed feeders as pairings", () => {
-    expect(feederLabel("QF", 0)).toEqual(["BRA/MAR", "ARG/JPN"]);
+    expect(feederLabel(MATCHES, "QF", 0)).toEqual(["BRA/MAR", "ARG/JPN"]);
+  });
+
+  it("decides drawn knockout matches on penalties", () => {
+    const match = {
+      ...MATCHES[0],
+      score: { home: 1, away: 1 },
+      shootout: { home: 4, away: 2 },
+    };
+    expect(winnerOf(match)).toBe(match.home);
   });
 });

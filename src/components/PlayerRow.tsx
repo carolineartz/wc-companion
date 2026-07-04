@@ -1,5 +1,6 @@
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { TeamBadge } from "@/components/TeamBadge";
+import { getClub } from "@/data/players";
 import { getTeam } from "@/data/teams";
 import type { Player } from "@/types";
 
@@ -11,7 +12,11 @@ export function PlayerRow({ player }: { player: Player }) {
       href={`#/player/${player.id}`}
       className="flex items-center gap-3 rounded-xl bg-card p-3"
     >
-      <PlayerAvatar player={player} />
+      <PlayerAvatar
+        name={player.name}
+        photoUrl={player.photoUrl}
+        colors={getClub(player.clubId)?.colors}
+      />
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-bold">{player.name}</span>
         <span className="block truncate text-xs text-muted-foreground">

@@ -1,5 +1,7 @@
 import { render, screen } from "@testing-library/react";
+import { TournamentProvider } from "@/hooks/useTournament";
 import { DEFAULT_ALERTS } from "@/lib/profile";
+import { demoSource } from "@/lib/source";
 import type { Profile } from "@/types";
 import { TodayScreen } from "./TodayScreen";
 
@@ -10,24 +12,31 @@ const PROFILE: Profile = {
   theme: "dark",
 };
 
-describe("TodayScreen", () => {
-  it("greets by name and shows the live count", () => {
-    render(<TodayScreen profile={PROFILE} />);
+function renderToday() {
+  return render(
+    <TournamentProvider source={demoSource}>
+      <TodayScreen profile={PROFILE} />
+    </TournamentProvider>,
+  );
+}
+
+describe("TodayScreen (demo source)", () => {
+  it("greets by name and shows the live count", async () => {
+    renderToday();
     expect(screen.getByText("Good afternoon, Alex")).toBeInTheDocument();
-    expect(screen.getByText(/1 match live now/)).toBeInTheDocument();
+    expect(await screen.findByText(/1 match live now/)).toBeInTheDocument();
   });
 
-  it("shows the live hero with the current score", () => {
-    render(<TodayScreen profile={PROFILE} />);
-    expect(screen.getByText(/LIVE · 67'/)).toBeInTheDocument();
-    const hero = screen.getByText(/LIVE · 67'/).closest("a");
-    expect(hero).toHaveAttribute("href", "#/match/r16-bra-mar");
+  it("shows the live hero with the current score", async () => {
+    renderToday();
+    const label = await screen.findByText(/LIVE · 67'/);
+    expect(label.closest("a")).toHaveAttribute("href", "#/match/r16-bra-mar");
   });
 
-  it("flags fixtures involving the user's teams", () => {
-    render(<TodayScreen profile={PROFILE} />);
+  it("flags fixtures involving the user's teams", async () => {
+    renderToday();
     expect(
-      screen.getByText(/United States · one of your teams/),
+      await screen.findByText(/United States · one of your teams/),
     ).toBeInTheDocument();
     expect(
       screen.getByText(/Argentina · one of your teams/),

@@ -1,3 +1,4 @@
+import { onColor } from "@/lib/color";
 import type { Team } from "@/types";
 
 // Only the nations that appear in the mock tournament state. Badge = the
@@ -146,13 +147,59 @@ export const TEAMS: Record<string, Team> = {
   },
 };
 
+// Teams discovered at runtime from the live feed. Hand-tuned entries above
+// win (they carry real kit colors); the feed fills in everyone else.
+const RUNTIME_TEAMS: Record<string, Team> = {};
+
+export function registerTeam(input: {
+  code: string;
+  name: string;
+  color?: string; // ESPN identity hex, no leading "#"
+  alternateColor?: string;
+  logo?: string;
+}): void {
+  const seeded = TEAMS[input.code];
+  if (seeded) {
+    if (input.logo && !seeded.logo) seeded.logo = input.logo;
+    return;
+  }
+  const primary = normalizeHex(input.color) ?? "#4b5563";
+  const secondary = normalizeHex(input.alternateColor) ?? "#9ca3af";
+  RUNTIME_TEAMS[input.code] = {
+    code: input.code,
+    name: input.name,
+    badge: { bg: primary, fg: onColor(primary) },
+    kit: { primary, secondary },
+    jersey: { name: "#1f2937", number: primary },
+    logo: input.logo,
+  };
+}
+
+/** For persisting feed-discovered teams alongside the snapshot cache. */
+export function dumpRuntimeTeams(): Team[] {
+  return Object.values(RUNTIME_TEAMS);
+}
+
+export function restoreRuntimeTeams(teams: Team[]): void {
+  for (const t of teams) {
+    if (t?.code && !TEAMS[t.code] && !RUNTIME_TEAMS[t.code]) {
+      RUNTIME_TEAMS[t.code] = t;
+    }
+  }
+}
+
+function normalizeHex(hex?: string): string | undefined {
+  if (!hex || !/^[0-9a-fA-F]{6}$/.test(hex.replace("#", ""))) return undefined;
+  return `#${hex.replace("#", "").toLowerCase()}`;
+}
+
 export function getTeam(code: string): Team {
-  const team = TEAMS[code];
+  const team = TEAMS[code] ?? RUNTIME_TEAMS[code];
   if (team) return team;
-  // Unknown code — return a neutral placeholder so the UI never crashes.
+  // Unknown code (incl. TBD slots) — neutral placeholder, never crash.
   return {
     code,
-    name: code,
+    name: code === "TBD" ? "TBD" : code,
     badge: { bg: "#4b5563", fg: "#ffffff" },
     kit: { primary: "#9ca3af", secondary: "#4b5563" },
     jersey: { name: "#1f2937", number: "#4b5563" },

@@ -9,6 +9,13 @@
   # the free tier; higher on paid plans).
   node_bundler = "esbuild"
 
+# CDN-level proxy to ESPN's public scoreboard API, used as a CORS-safe
+# fallback when the browser can't call site.api.espn.com directly.
+[[redirects]]
+  from = "/api/espn/*"
+  to = "https://site.api.espn.com/:splat"
+  status = 200
+
 # SPA fallback so the single-page app handles all routes.
 [[redirects]]
   from = "/*"

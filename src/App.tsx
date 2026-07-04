@@ -9,9 +9,13 @@ import { StatsScreen } from "@/components/screens/StatsScreen";
 import { TodayScreen } from "@/components/screens/TodayScreen";
 import { YouScreen } from "@/components/screens/YouScreen";
 import { TabBar } from "@/components/TabBar";
+import { TournamentProvider } from "@/hooks/useTournament";
 import { loadProfile, saveProfile } from "@/lib/profile";
 import { navigate, useRoute } from "@/lib/router";
+import { chooseSource } from "@/lib/source";
 import type { Profile } from "@/types";
+
+const source = chooseSource();
 
 export default function App() {
   const [profile, setProfile] = useState<Profile | null>(() => loadProfile());
@@ -45,12 +49,14 @@ export default function App() {
   }
 
   return (
-    <div className="mx-auto min-h-full w-full max-w-md">
-      <main className="pb-24">
-        <Screen route={route} profile={profile} onChange={updateProfile} />
-      </main>
-      <TabBar route={route} />
-    </div>
+    <TournamentProvider source={source}>
+      <div className="mx-auto min-h-full w-full max-w-md">
+        <main className="pb-24">
+          <Screen route={route} profile={profile} onChange={updateProfile} />
+        </main>
+        <TabBar route={route} />
+      </div>
+    </TournamentProvider>
   );
 }
 

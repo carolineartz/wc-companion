@@ -1,36 +1,33 @@
-import { getClub } from "@/data/players";
 import { initials } from "@/lib/color";
 import { cn } from "@/lib/utils";
-import type { Player } from "@/types";
 
 /**
- * Player photo when we have one; otherwise initials on a gradient built
- * from the player's club colors (matches the mock treatment).
+ * Player photo when we have one; otherwise initials on a gradient
+ * (club colors for seeded players, neutral for live-feed names).
  */
 export function PlayerAvatar({
-  player,
+  name,
+  colors,
+  photoUrl,
   className,
 }: {
-  player: Player;
+  name: string;
+  colors?: [string, string];
+  photoUrl?: string;
   className?: string;
 }) {
   const base = cn(
     "flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg",
     className,
   );
-  if (player.photoUrl) {
+  if (photoUrl) {
     return (
       <span className={cn(base, "bg-secondary")}>
-        <img
-          src={player.photoUrl}
-          alt={player.name}
-          className="h-full w-full object-cover"
-        />
+        <img src={photoUrl} alt={name} className="h-full w-full object-cover" />
       </span>
     );
   }
-  const club = getClub(player.clubId);
-  const [from, to] = club?.colors ?? ["#4b5563", "#1f2937"];
+  const [from, to] = colors ?? ["#4b5563", "#1f2937"];
   return (
     <span
       className={cn(base, "font-num text-xs font-bold text-white/90")}
@@ -38,7 +35,7 @@ export function PlayerAvatar({
         background: `linear-gradient(135deg, ${from} 0%, ${to} 100%)`,
       }}
     >
-      {initials(player.name)}
+      {initials(name)}
     </span>
   );
 }

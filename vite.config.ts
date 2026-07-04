@@ -12,6 +12,17 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
+  server: {
+    // Same-path proxy as the Netlify redirect, so the ESPN fallback route
+    // works identically in `npm run dev` and in production.
+    proxy: {
+      "/api/espn": {
+        target: "https://site.api.espn.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/espn/, ""),
+      },
+    },
+  },
   test: {
     // Jest-like ergonomics (globals + jsdom) — a familiar landing spot when
     // migrating a Jest suite to Vitest.

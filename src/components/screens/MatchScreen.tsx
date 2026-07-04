@@ -2,53 +2,63 @@ import { useState } from "react";
 import { BackHeader } from "@/components/BackHeader";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { TeamBadge } from "@/components/TeamBadge";
-import { getMatch } from "@/data/matches";
 import { getClub, getPlayer } from "@/data/players";
 import { getTeam } from "@/data/teams";
+import { useMatchDetails, useTournament } from "@/hooks/useTournament";
 import { onColor } from "@/lib/color";
 import { formatKickoff, untilKickoff } from "@/lib/time";
 import { cn } from "@/lib/utils";
-import type { Lineup, Match } from "@/types";
+import type { Lineup, Match, StatRow } from "@/types";
 
 const TABS = ["Overview", "Lineups", "Stats"] as const;
 type Tab = (typeof TABS)[number];
 
 export function MatchScreen({ id }: { id: string }) {
   const [tab, setTab] = useState<Tab>("Overview");
-  const match = getMatch(id);
-  if (!match) {
+  const t = useTournament();
+  const base = t.matches.find((m) => m.id === id);
+  const details = useMatchDetails(base);
+
+  if (!base) {
     return (
       <div>
         <BackHeader title="Match" />
         <p className="px-4 text-sm text-muted-foreground">
-          Unknown match. <a href="#/">Back to Today</a>.
+          {t.loading ? "Loading…" : "Unknown match."}{" "}
+          <a href="#/">Back to Today</a>.
         </p>
       </div>
     );
   }
+  // Live details (boxscore/lineups) overlay whatever the match already has.
+  const match: Match = {
+    ...base,
+    stats: details?.stats ?? base.stats,
+    lineups: details?.lineups ?? base.lineups,
+  };
 
   return (
     <div className="pb-6">
       <BackHeader
         title={match.stageLabel}
-        subtitle={`${match.venue} · ${match.city}`}
+        subtitle={[match.venue, match.city].filter(Boolean).join(" · ")}
       />
-      <ScoreHeader match={match} />
+      <ScoreHeader match={match} now={t.now()} />
 
       <div className="mx-4 mt-5 flex rounded-full bg-card p-1 text-xs">
-        {TABS.map((t) => (
+        {TABS.map((tabName) => (
           <button
-            key={t}
+            key={tabName}
             type="button"
-            onClick={() => setTab(t)}
+            onClick={() => setTab(tabName)}
             className={cn(
               "flex-1 rounded-full py-2 font-medium",
-              tab === t
+              tab === tabName
                 ? "bg-secondary font-bold text-foreground"
                 : "text-muted-foreground",
             )}
           >
-            {t}
+            {tabName}
           </button>
         ))}
       </div>
@@ -76,13 +86,13 @@ function TeamColumn({ code }: { code: string }) {
       <span className="text-center text-sm leading-tight">{team.name}</span>
       <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
         <KitSwatch colors={[team.kit.primary, team.kit.secondary]} />
-        Home kit
+        Kit
       </span>
     </div>
   );
 }
 
-function ScoreHeader({ match }: { match: Match }) {
+function ScoreHeader({ match, now }: { match: Match; now: Date }) {
   const started = match.status !== "upcoming";
   return (
     <div className="flex items-start justify-between gap-2 px-6">
@@ -95,11 +105,16 @@ function ScoreHeader({ match }: { match: Match }) {
               <span className="mx-2 text-muted-foreground">:</span>
               {match.score.away}
             </p>
+            {match.shootout && (
+              <p className="mt-1 font-num text-xs text-muted-foreground">
+                ({match.shootout.home}–{match.shootout.away} pens)
+              </p>
+            )}
             <p className="mt-2 text-xs">
               {match.status === "live" ? (
                 <span className="flex items-center justify-center gap-1.5 font-bold text-destructive">
                   <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-destructive" />
-                  LIVE · {match.minute}&apos;
+                  LIVE · {match.clock}
                 </span>
               ) : (
                 <span className="font-bold text-muted-foreground">
@@ -114,7 +129,7 @@ function ScoreHeader({ match }: { match: Match }) {
               {formatKickoff(match.kickoff)}
             </p>
             <p className="mt-2 text-xs text-muted-foreground">
-              {untilKickoff(match.kickoff) || "Kick-off"}
+              {untilKickoff(match.kickoff, now) || "Kick-off"}
             </p>
           </>
         )}
@@ -140,6 +155,12 @@ function OverviewTab({ match }: { match: Match }) {
   const watch = (match.watch ?? [])
     .map((id) => getPlayer(id))
     .filter((p) => p !== undefined);
+  const empty =
+    watch.length === 0 &&
+    !match.winProb &&
+    !match.path &&
+    !match.h2h &&
+    !match.form;
   return (
     <div className="px-4">
       {watch.length > 0 && (
@@ -153,7 +174,11 @@ function OverviewTab({ match }: { match: Match }) {
                 className="rounded-2xl bg-card p-3"
               >
                 <div className="flex items-start justify-between">
-                  <PlayerAvatar player={p} />
+                  <PlayerAvatar
+                    name={p.name}
+                    photoUrl={p.photoUrl}
+                    colors={getClub(p.clubId)?.colors}
+                  />
                   <span className="flex flex-col items-end gap-1">
                     <TeamBadge code={p.teamCode} size="sm" />
                     <span className="text-[10px] text-muted-foreground">
@@ -223,7 +248,7 @@ function OverviewTab({ match }: { match: Match }) {
             </>
           )}
           {match.form && (
-            <div className="mt-4 flex flex-col gap-2">
+            <div className={cn("flex flex-col gap-2", match.h2h && "mt-4")}>
               <p className="section-label">Recent form</p>
               {(["home", "away"] as const).map((side) => (
                 <div key={side} className="flex items-center gap-2">
@@ -238,6 +263,13 @@ function OverviewTab({ match }: { match: Match }) {
             </div>
           )}
         </div>
+      )}
+
+      {empty && (
+        <p className="px-1 pt-8 text-center text-sm text-muted-foreground">
+          Nothing extra for this one yet — check Lineups and Stats closer to
+          kick-off.
+        </p>
       )}
     </div>
   );
@@ -377,68 +409,27 @@ function FormationRows({
 /* ------------------------------------------------------------------- Stats */
 
 function StatsTab({ match }: { match: Match }) {
-  if (!match.stats) {
+  if (!match.stats || match.stats.length === 0) {
     return (
       <p className="px-4 pt-8 text-center text-sm text-muted-foreground">
         Stats appear once the match kicks off.
       </p>
     );
   }
-  const s = match.stats;
-  const rows: { label: string; values: [number, number]; decimals?: number }[] =
-    [
-      { label: "Possession", values: s.possession },
-      { label: "Shots", values: s.shots },
-      { label: "On target", values: s.onTarget },
-      { label: "Expected goals (xG)", values: s.xg, decimals: 2 },
-      { label: "Corners", values: s.corners },
-      { label: "Fouls", values: s.fouls },
-    ];
   const homeKit = getTeam(match.home).kit.primary;
   const awayKit = getTeam(match.away).kit.primary;
 
   return (
     <div className="px-4">
       <div className="mt-4 flex flex-col gap-4 rounded-2xl bg-card p-4">
-        {rows.map(({ label, values: [h, a], decimals = 0 }) => {
-          const total = h + a || 1;
-          const suffix = label === "Possession" ? "%" : "";
-          return (
-            <div key={label}>
-              <div className="flex items-baseline justify-between">
-                <span className="w-12 font-num text-sm font-bold">
-                  {h.toFixed(decimals)}
-                  {suffix}
-                </span>
-                <span className="text-xs text-muted-foreground">{label}</span>
-                <span className="w-12 text-right font-num text-sm font-bold">
-                  {a.toFixed(decimals)}
-                  {suffix}
-                </span>
-              </div>
-              <div className="mx-auto mt-1.5 flex h-1.5 w-2/3 gap-1">
-                <span className="flex flex-1 justify-end">
-                  <span
-                    className="rounded-full"
-                    style={{
-                      width: `${(h / total) * 100}%`,
-                      backgroundColor: homeKit,
-                    }}
-                  />
-                </span>
-                <span className="flex flex-1">
-                  <span
-                    className="rounded-full"
-                    style={{
-                      width: `${(a / total) * 100}%`,
-                      backgroundColor: awayKit,
-                    }}
-                  />
-                </span>
-              </div>
-            </div>
-          );
-        })}
+        {match.stats.map((row) => (
+          <StatLine
+            key={row.label}
+            row={row}
+            homeKit={homeKit}
+            awayKit={awayKit}
+          />
+        ))}
       </div>
 
       {match.momentum && match.winProb && (
@@ -453,8 +444,50 @@ function StatsTab({ match }: { match: Match }) {
           <div className="mt-1 flex justify-between font-num text-[10px] text-muted-foreground">
             <span>KO</span>
             <span>HT</span>
-            <span>{match.minute}&apos;</span>
+            <span>{match.clock}</span>
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StatLine({
+  row,
+  homeKit,
+  awayKit,
+}: {
+  row: StatRow;
+  homeKit: string;
+  awayKit: string;
+}) {
+  const share = row.homeShare;
+  return (
+    <div>
+      <div className="flex items-baseline justify-between">
+        <span className="w-14 font-num text-sm font-bold">{row.home}</span>
+        <span className="text-xs text-muted-foreground">{row.label}</span>
+        <span className="w-14 text-right font-num text-sm font-bold">
+          {row.away}
+        </span>
+      </div>
+      {share !== undefined && (
+        <div className="mx-auto mt-1.5 flex h-1.5 w-2/3 gap-1">
+          <span className="flex flex-1 justify-end">
+            <span
+              className="rounded-full"
+              style={{ width: `${share * 100}%`, backgroundColor: homeKit }}
+            />
+          </span>
+          <span className="flex flex-1">
+            <span
+              className="rounded-full"
+              style={{
+                width: `${(1 - share) * 100}%`,
+                backgroundColor: awayKit,
+              }}
+            />
+          </span>
         </div>
       )}
     </div>
