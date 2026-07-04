@@ -1,56 +1,45 @@
-import { beforeEach, describe, expect, it } from "vitest";
-
-import { clearProfile, loadProfile, saveProfile } from "@/lib/profile";
 import type { Profile } from "@/types";
+import {
+  clearProfile,
+  DEFAULT_ALERTS,
+  loadProfile,
+  saveProfile,
+} from "./profile";
 
-const KEY = "companion.profile";
+const VALID: Profile = {
+  name: "Alex",
+  teams: ["USA", "BRA"],
+  alerts: DEFAULT_ALERTS,
+  theme: "dark",
+};
 
 describe("profile persistence", () => {
-  beforeEach(() => {
-    localStorage.clear();
+  beforeEach(() => localStorage.clear());
+
+  it("round-trips a profile through localStorage", () => {
+    saveProfile(VALID);
+    expect(loadProfile()).toEqual(VALID);
   });
 
-  it("returns null on first run (nothing stored)", () => {
+  it("returns null on first run", () => {
     expect(loadProfile()).toBeNull();
   });
 
-  it("round-trips a saved profile", () => {
-    const profile: Profile = { name: "Dad", favoriteTeamIds: ["usa"] };
-    saveProfile(profile);
-    expect(loadProfile()).toEqual(profile);
-  });
-
-  it("trims the name and drops unknown team ids", () => {
-    localStorage.setItem(
-      KEY,
-      JSON.stringify({ name: "  Dad  ", favoriteTeamIds: ["usa", "atlantis"] }),
-    );
-    expect(loadProfile()).toEqual({ name: "Dad", favoriteTeamIds: ["usa"] });
-  });
-
-  it("returns null for malformed JSON", () => {
-    localStorage.setItem(KEY, "{not json");
+  it("returns null for corrupt JSON", () => {
+    localStorage.setItem("companion.profile.v2", "{nope");
     expect(loadProfile()).toBeNull();
   });
 
-  it("returns null when no valid team remains", () => {
+  it("rejects the old v1 profile shape", () => {
     localStorage.setItem(
-      KEY,
-      JSON.stringify({ name: "Dad", favoriteTeamIds: ["atlantis"] }),
+      "companion.profile.v2",
+      JSON.stringify({ name: "Alex", favoriteTeamIds: ["usa"] }),
     );
     expect(loadProfile()).toBeNull();
   });
 
-  it("returns null when the name is blank", () => {
-    localStorage.setItem(
-      KEY,
-      JSON.stringify({ name: "   ", favoriteTeamIds: ["usa"] }),
-    );
-    expect(loadProfile()).toBeNull();
-  });
-
-  it("clears the stored profile", () => {
-    saveProfile({ name: "Dad", favoriteTeamIds: ["usa"] });
+  it("clears the saved profile", () => {
+    saveProfile(VALID);
     clearProfile();
     expect(loadProfile()).toBeNull();
   });

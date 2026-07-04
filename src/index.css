@@ -3,61 +3,96 @@
 @tailwind utilities;
 
 /*
-  Typography roles (Adobe Typekit, loaded in index.html):
-    --font-display : spent-vf      -> titles, names, kit numbers
-    --font-sans    : area-variable -> UI + briefing prose
-    --font-mono    : calling-code  -> numbers, tags, scores
+  "Pitch UI" — the Broadcast direction (docs/screens).
 
-  Design tokens are wired as shadcn HSL channels (H S% L%) so Tailwind's
-  `hsl(var(--token))` colors resolve. Dark theme only — "floodlit pitch."
-  Source hex -> HSL:
-    background  #07241B -> 161 67% 8%
-    card        #0E3327 -> 160 57% 13%
-    foreground  #F4F1E6 -> 47 39% 93%
-    muted-fg    #C9CFC4 -> 93 10% 79%
-    primary     #34C76A -> 142 59% 49%
-    accent      #F2B705 -> 45 96% 48%
-    destructive #FF5436 -> 9 100% 61%
-    border      rgba(244,241,230,.13) over bg -> 156 25% 20%
+  Typography roles (self-hosted via @fontsource, imported in main.tsx):
+    --font-display : Arvo          -> big headings, team/player display names
+    --font-mono    : Sometype Mono -> default UI text (the app is mono-first)
+    --font-num     : Geist Mono    -> scores, kick-off times, big numbers
+
+  Tokens are shadcn-style HSL channels. Dark is the default; light exists
+  behind the theme toggle on the You screen.
 */
 :root {
-  --font-display: "spent-vf", system-ui, sans-serif;
-  --font-sans: "area-variable", system-ui, sans-serif;
-  --font-mono: "calling-code", ui-monospace, SFMono-Regular, monospace;
+  --font-display: "Arvo", Georgia, serif;
+  --font-mono: "Sometype Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-num: "Geist Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-sans: system-ui, sans-serif;
 }
 
 @layer base {
   :root,
   .dark {
-    --background: 161 67% 8%;
-    --foreground: 47 39% 93%;
+    --background: 165 14% 5%;
+    --foreground: 100 8% 92%;
 
-    --card: 160 57% 13%;
-    --card-foreground: 47 39% 93%;
+    --card: 163 13% 9%;
+    --card-foreground: 100 8% 92%;
 
-    --popover: 160 57% 13%;
-    --popover-foreground: 47 39% 93%;
+    --popover: 163 13% 9%;
+    --popover-foreground: 100 8% 92%;
 
-    --primary: 142 59% 49%;
-    --primary-foreground: 161 67% 8%;
+    /* Periwinkle — active tab, primary buttons, kick-off times. */
+    --primary: 228 84% 77%;
+    --primary-foreground: 230 30% 12%;
 
-    --secondary: 160 57% 13%;
-    --secondary-foreground: 47 39% 93%;
+    /* Inner rows / chips one step above card. */
+    --secondary: 162 10% 14%;
+    --secondary-foreground: 100 8% 92%;
 
-    --muted: 160 57% 13%;
-    --muted-foreground: 93 10% 79%;
+    --muted: 162 10% 14%;
+    --muted-foreground: 140 5% 58%;
 
-    --accent: 45 96% 48%;
-    --accent-foreground: 161 67% 8%;
+    /* Pitch green — live, favorites, qualified. */
+    --accent: 147 55% 52%;
+    --accent-foreground: 165 14% 5%;
 
-    --destructive: 9 100% 61%;
-    --destructive-foreground: 47 39% 93%;
+    /* Live/alert red. */
+    --destructive: 354 90% 62%;
+    --destructive-foreground: 100 8% 92%;
 
-    --border: 156 25% 20%;
-    --input: 156 25% 20%;
-    --ring: 142 59% 49%;
+    /* Golden Boot / HEADLINE label. */
+    --gold: 46 78% 57%;
 
-    --radius: 0.75rem;
+    --border: 161 9% 16%;
+    --input: 161 9% 16%;
+    --ring: 228 84% 77%;
+
+    --radius: 1rem;
+  }
+
+  .light {
+    --background: 80 20% 96%;
+    --foreground: 168 15% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 168 15% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 168 15% 10%;
+
+    --primary: 230 62% 56%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 100 12% 91%;
+    --secondary-foreground: 168 15% 10%;
+
+    --muted: 100 12% 91%;
+    --muted-foreground: 150 6% 40%;
+
+    --accent: 147 60% 33%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 354 75% 48%;
+    --destructive-foreground: 0 0% 100%;
+
+    --gold: 43 85% 38%;
+
+    --border: 140 8% 85%;
+    --input: 140 8% 85%;
+    --ring: 230 62% 56%;
+
+    --radius: 1rem;
   }
 }
 
@@ -73,18 +108,37 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground font-mono antialiased;
+  }
+
+  .dark body {
     /* Subtle floodlit glow from the top of the pitch. */
     background-image: radial-gradient(
-      120% 60% at 50% -10%,
-      hsl(142 59% 49% / 0.12),
+      120% 50% at 50% -10%,
+      hsl(147 55% 52% / 0.07),
       transparent 60%
     );
     background-attachment: fixed;
   }
 
-  /* Tabular figures everywhere mono is used — scores/numbers stay aligned. */
-  .font-mono {
+  /* Scores and numbers stay column-aligned everywhere. */
+  .font-mono,
+  .font-num {
     font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer utilities {
+  /* Section labels: "YOUR TEAMS", "PUSH NOTIFICATIONS", … */
+  .section-label {
+    @apply text-[11px] uppercase tracking-[0.25em] text-muted-foreground;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }

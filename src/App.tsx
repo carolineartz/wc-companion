@@ -1,121 +1,84 @@
-import { Settings as SettingsIcon } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { FirstRun } from "@/components/FirstRun";
-import { KitCard } from "@/components/KitCard";
-import { Roster } from "@/components/Roster";
-import { Settings } from "@/components/Settings";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { getTeam, TEAMS } from "@/data/rosters";
-import { clearProfile, loadProfile, saveProfile } from "@/lib/profile";
-import type { Player, Profile } from "@/types";
+import { useEffect, useState } from "react";
+import { BracketScreen } from "@/components/screens/BracketScreen";
+import { ClubScreen } from "@/components/screens/ClubScreen";
+import { LeagueScreen } from "@/components/screens/LeagueScreen";
+import { MatchScreen } from "@/components/screens/MatchScreen";
+import { Onboarding } from "@/components/screens/Onboarding";
+import { PlayerScreen } from "@/components/screens/PlayerScreen";
+import { StatsScreen } from "@/components/screens/StatsScreen";
+import { TodayScreen } from "@/components/screens/TodayScreen";
+import { YouScreen } from "@/components/screens/YouScreen";
+import { TabBar } from "@/components/TabBar";
+import { loadProfile, saveProfile } from "@/lib/profile";
+import { navigate, useRoute } from "@/lib/router";
+import type { Profile } from "@/types";
 
 export default function App() {
   const [profile, setProfile] = useState<Profile | null>(() => loadProfile());
-  const [activeTeamId, setActiveTeamId] = useState<string>("");
-  const [selected, setSelected] = useState<Player | null>(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const route = useRoute();
 
-  // Keep the active team in sync with the profile's favorites.
+  // Theme lives on <html> so tokens flip app-wide.
   useEffect(() => {
-    if (!profile) return;
-    if (!profile.favoriteTeamIds.includes(activeTeamId)) {
-      setActiveTeamId(profile.favoriteTeamIds[0]);
-    }
-  }, [profile, activeTeamId]);
+    const theme = profile?.theme ?? "dark";
+    const root = document.documentElement;
+    root.classList.toggle("dark", theme === "dark");
+    root.classList.toggle("light", theme === "light");
+  }, [profile?.theme]);
 
-  const team = useMemo(
-    () => getTeam(activeTeamId) ?? getTeam(profile?.favoriteTeamIds[0] ?? ""),
-    [activeTeamId, profile],
-  );
-
-  const handleSaveProfile = (p: Profile) => {
+  const updateProfile = (p: Profile) => {
     saveProfile(p);
     setProfile(p);
   };
 
-  const handleReset = () => {
-    clearProfile();
-    setProfile(null);
-    setSettingsOpen(false);
-    setActiveTeamId("");
-  };
-
-  if (!profile) {
-    return <FirstRun onSave={handleSaveProfile} />;
+  // First run, or explicit "#/onboarding" (Edit from the You screen).
+  if (!profile || route[0] === "onboarding") {
+    return (
+      <Onboarding
+        initial={profile}
+        onDone={(p) => {
+          const firstRun = !profile;
+          updateProfile(p);
+          navigate(firstRun ? "/" : "/you");
+        }}
+      />
+    );
   }
 
-  const favorites = TEAMS.filter((t) => profile.favoriteTeamIds.includes(t.id));
-
   return (
-    <div className="mx-auto min-h-screen max-w-3xl px-4 pb-16 pt-6">
-      <header className="mb-8 flex items-start justify-between gap-3">
-        <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-primary">
-            2026 · Watching Companion
-          </p>
-          <h1 className="font-display text-3xl font-bold tracking-tight">
-            {team?.flag} {team?.name ?? "Squad"}
-          </h1>
-          <p className="mt-1 font-mono text-xs text-muted-foreground">
-            Hi, {profile.name} — tap a number or use the mic.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {favorites.length > 1 && (
-            <Select value={team?.id} onValueChange={setActiveTeamId}>
-              <SelectTrigger className="w-[10rem]" aria-label="Active team">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {favorites.map((t) => (
-                  <SelectItem key={t.id} value={t.id}>
-                    {t.flag} {t.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            aria-label="Settings"
-            onClick={() => setSettingsOpen(true)}
-          >
-            <SettingsIcon />
-          </Button>
-        </div>
-      </header>
-
-      {team && <Roster team={team} onSelect={setSelected} />}
-
-      {/* Player detail = the kit card, in a Sheet */}
-      <Sheet
-        open={!!selected}
-        onOpenChange={(open) => !open && setSelected(null)}
-      >
-        <SheetContent side="right" className="w-full sm:max-w-md">
-          {team && selected && (
-            <KitCard team={team} player={selected} profile={profile} />
-          )}
-        </SheetContent>
-      </Sheet>
-
-      <Settings
-        open={settingsOpen}
-        onOpenChange={setSettingsOpen}
-        profile={profile}
-        onSave={handleSaveProfile}
-        onReset={handleReset}
-      />
+    <div className="mx-auto min-h-full w-full max-w-md">
+      <main className="pb-24">
+        <Screen route={route} profile={profile} onChange={updateProfile} />
+      </main>
+      <TabBar route={route} />
     </div>
   );
+}
+
+function Screen({
+  route,
+  profile,
+  onChange,
+}: {
+  route: string[];
+  profile: Profile;
+  onChange: (p: Profile) => void;
+}) {
+  switch (route[0]) {
+    case "match":
+      return <MatchScreen id={route[1] ?? ""} />;
+    case "bracket":
+      return <BracketScreen />;
+    case "stats":
+      return <StatsScreen />;
+    case "you":
+      return <YouScreen profile={profile} onChange={onChange} />;
+    case "player":
+      return <PlayerScreen id={route[1] ?? ""} />;
+    case "club":
+      return <ClubScreen id={route[1] ?? ""} />;
+    case "league":
+      return <LeagueScreen id={route[1] ?? ""} />;
+    default:
+      return <TodayScreen profile={profile} />;
+  }
 }
