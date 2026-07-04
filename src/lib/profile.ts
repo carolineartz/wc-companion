@@ -1,37 +1,45 @@
-import { TEAMS } from "@/data/rosters";
 import type { Profile } from "@/types";
 
-const STORAGE_KEY = "companion.profile";
+// v2: the "Broadcast direction" profile (teams + alerts + theme). The v1
+// roster-app profile used a different key/shape; we simply ignore it.
+const KEY = "companion.profile.v2";
 
-/** Read the persisted profile, or null on first run / invalid data. */
+export const DEFAULT_ALERTS: Profile["alerts"] = {
+  kickoff: true,
+  goals: true,
+  yourTeamsOnly: true,
+  fullTime: false,
+};
+
 export function loadProfile(): Profile | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<Profile>;
-    if (
-      typeof parsed?.name !== "string" ||
-      !Array.isArray(parsed?.favoriteTeamIds)
-    ) {
-      return null;
-    }
-    // Drop any team ids that no longer exist in the seed data.
-    const valid = parsed.favoriteTeamIds.filter((id) =>
-      TEAMS.some((t) => t.id === id),
-    );
-    if (!parsed.name.trim() || valid.length === 0) return null;
-    return { name: parsed.name.trim(), favoriteTeamIds: valid };
+    const parsed: unknown = JSON.parse(raw);
+    if (!isProfile(parsed)) return null;
+    return parsed;
   } catch {
     return null;
   }
 }
 
-/** Persist the profile to localStorage. */
 export function saveProfile(profile: Profile): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+  localStorage.setItem(KEY, JSON.stringify(profile));
 }
 
-/** Clear the saved profile (used by "reset" in Settings). */
 export function clearProfile(): void {
-  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(KEY);
+}
+
+function isProfile(value: unknown): value is Profile {
+  if (typeof value !== "object" || value === null) return false;
+  const p = value as Record<string, unknown>;
+  return (
+    typeof p.name === "string" &&
+    Array.isArray(p.teams) &&
+    p.teams.every((t) => typeof t === "string") &&
+    typeof p.alerts === "object" &&
+    p.alerts !== null &&
+    (p.theme === "dark" || p.theme === "light")
+  );
 }

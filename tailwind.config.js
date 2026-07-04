@@ -7,10 +7,11 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        // Adobe Typekit roles (see index.html <link> + globals.css vars)
+        // Pitch UI roles (self-hosted @fontsource, vars in index.css)
         display: ["var(--font-display)"],
         sans: ["var(--font-sans)"],
         mono: ["var(--font-mono)"],
+        num: ["var(--font-num)"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -42,6 +43,7 @@ export default {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
         },
+        gold: "hsl(var(--gold))",
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
